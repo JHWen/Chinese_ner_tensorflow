@@ -62,7 +62,7 @@
 ### 测试方法
 输入如下命令完成测试集测试
 
-`python main.py --mode test --demo_model 1522858865`
+`python main.py --mode test --dataset_name MSRA --demo_model 1522858865`
 
 备注:训练过程中，每开始一次都会在“data_path_save/”目录下产生一个文件夹(以时间转换为整数来命名的)，将训练的参数保存。
      当测试的时候，想用哪次训练的参数进行测试，就将该次训练的文件名赋值给“--demo_model"，即替换上面命令中的"1522858865"。
@@ -75,11 +75,11 @@
 
 运行命令如下;
 
-`python main.py --mode demo --demo_model 1522858865`
+`python main.py --mode demo --dataset_name MSRA --demo_model 1522858865`
 
 运行程序后，会提示输入一段文本，输入后就可以看到通过该代码识别的结果。
 
-
+![demo](./pic/demo.PNG)
 
 ### 参考
 \[1\] [Determined22/zh-NER-TF](https://github.com/Determined22/zh-NER-TF)
