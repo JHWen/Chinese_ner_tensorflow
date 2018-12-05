@@ -14,8 +14,10 @@ config.gpu_options.per_process_gpu_memory_fraction = 0.2  # need ~700MB GPU memo
 
 # hyper parameters
 parser = argparse.ArgumentParser(description='BiLSTM-CRF for Chinese NER task')
-parser.add_argument('--train_data', type=str, default='data_path', help='train data source')
-parser.add_argument('--test_data', type=str, default='data_path', help='test data source')
+parser.add_argument('--dataset_name', type=str, default='MSRA',
+                    help='choose a dataset(MSRA, ResumeNER, Weibo_NER,人民日报)')
+# parser.add_argument('--train_data', type=str, default='data_path', help='train data source')
+# parser.add_argument('--test_data', type=str, default='data_path', help='test data source')
 parser.add_argument('--batch_size', type=int, default=64, help='#sample of each minibatch')
 parser.add_argument('--epoch', type=int, default=40, help='#epoch of training')
 parser.add_argument('--hidden_dim', type=int, default=300, help='#dim of hidden state')
@@ -34,12 +36,12 @@ parser.add_argument('--demo_model', type=str, default='1521112368', help='model 
 args = parser.parse_args()
 
 # vocabulary build
-if not os.path.exists(os.path.join('.', args.train_data, 'word2id.pkl')):
-    vocab_build(os.path.join('.', args.train_data, 'word2id.pkl'),
-                os.path.join('.', args.train_data, 'train_data.txt'))
+if not os.path.exists(os.path.join('data_path', args.dataset_name, 'word2id.pkl')):
+    vocab_build(os.path.join('data_path', args.dataset_name, 'word2id.pkl'),
+                os.path.join('data_path', args.dataset_name, 'train_data.txt'))
 
 # get char embeddings
-word2id = read_dictionary(os.path.join('.', args.train_data, 'word2id.pkl'))
+word2id = read_dictionary(os.path.join('data_path', args.dataset_name, 'word2id.pkl'))
 if args.pretrain_embedding == 'random':
     embeddings = random_embedding(word2id, args.embedding_dim)
 else:
@@ -48,16 +50,16 @@ else:
 
 # read corpus and get training data
 if args.mode != 'demo':
-    train_path = os.path.join('.', args.train_data, 'train_data.txt')
-    test_path = os.path.join('.', args.test_data, 'test_data.txt')
+    train_path = os.path.join('data_path', args.dataset_name, 'train_data.txt')
+    test_path = os.path.join('data_path', args.dataset_name, 'test_data.txt')
     train_data = read_corpus(train_path)
-    test_data = read_corpus(test_path);
+    test_data = read_corpus(test_path)
     test_size = len(test_data)
 
 # paths setting
 paths = {}
 timestamp = str(int(time.time())) if args.mode == 'train' else args.demo_model
-output_path = os.path.join('.', args.train_data + "_save", timestamp)
+output_path = os.path.join('model_path', args.dataset_name, timestamp)
 if not os.path.exists(output_path): os.makedirs(output_path)
 summary_path = os.path.join(output_path, "summaries")
 paths['summary_path'] = summary_path

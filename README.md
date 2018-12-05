@@ -19,13 +19,9 @@
 ### 训练方法
 输入如下命令，开始训练模型
 
-`python main.py --mode=train `
+`python main.py --mode train --dataset_name MSRA`
 
-其他参数设置：
-
-训练数据(train_data.txt)目录：`--train_data data_path`
-
-测试数据(test_data.txt)目录：`--test_data data_path`
+语料库选择，修改`--dataset_name`参数（MSRA, ResumeNER, Weibo_NER,人民日报）
 
 备注：训练其他语料库的话，由于不同语料库的**实体类别**可能存在差异，需要修改`data.py`代码中的tag2label，
 如果需要运行demo，还需要修改`utils.py`里的`get_entity()`系列方法
@@ -66,7 +62,7 @@
 ### 测试方法
 输入如下命令完成测试集测试
 
-`python main.py --mode=test --demo_model=1522858865`
+`python main.py --mode test --demo_model 1522858865`
 
 备注:训练过程中，每开始一次都会在“data_path_save/”目录下产生一个文件夹(以时间转换为整数来命名的)，将训练的参数保存。
      当测试的时候，想用哪次训练的参数进行测试，就将该次训练的文件名赋值给“--demo_model"，即替换上面命令中的"1522858865"。
@@ -79,7 +75,7 @@
 
 运行命令如下;
 
-`python main.py --mode=demo --demo_model=1522858865`
+`python main.py --mode demo --demo_model 1522858865`
 
 运行程序后，会提示输入一段文本，输入后就可以看到通过该代码识别的结果。
 
