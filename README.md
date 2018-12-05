@@ -45,7 +45,7 @@
 | 人名  | B-PER.NAM I-PER.NAM |
 | 地名  | B-LOC.NAM I-LOC.NAM |
 | 机构名 | B-ORG.NAM I-ORG.NAM|
-| GPE-political | B-ORG.NAM I-ORG.NAM|
+| GPE-political | B-GPE.NAM I-GPE.NAM|
 | 人名(nominal)  | B-PER.NOM I-PER.NOM |
 | 地名(nominal)  | B-LOC.NOM I-LOC.NOM |
 | 机构名(nominal) | B-ORG.NOM I-ORG.NOM|
