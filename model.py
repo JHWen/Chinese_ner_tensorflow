@@ -1,12 +1,15 @@
-import numpy as np
-import os, time, sys
+import os
+import sys
+import time
+
 import tensorflow as tf
-from tensorflow.contrib.rnn import LSTMCell
 from tensorflow.contrib.crf import crf_log_likelihood
 from tensorflow.contrib.crf import viterbi_decode
+from tensorflow.contrib.rnn import LSTMCell
+
 from data import pad_sequences, batch_yield
-from utils import get_logger
 from eval import conlleval
+from utils import get_logger
 
 
 class BiLSTM_CRF(object):
@@ -57,7 +60,7 @@ class BiLSTM_CRF(object):
             word_embeddings = tf.nn.embedding_lookup(params=_word_embeddings,
                                                      ids=self.word_ids,
                                                      name="word_embeddings")
-        self.word_embeddings =  tf.nn.dropout(word_embeddings, self.dropout_pl)
+        self.word_embeddings = tf.nn.dropout(word_embeddings, self.dropout_pl)
 
     def biLSTM_layer_op(self):
         with tf.variable_scope("bi-lstm"):
@@ -84,7 +87,7 @@ class BiLSTM_CRF(object):
                                 dtype=tf.float32)
 
             s = tf.shape(output)
-            output = tf.reshape(output, [-1, 2*self.hidden_dim])
+            output = tf.reshape(output, [-1, 2 * self.hidden_dim])
             pred = tf.matmul(output, W) + b
 
             self.logits = tf.reshape(pred, [-1, s[1], self.num_tags])
@@ -92,8 +95,8 @@ class BiLSTM_CRF(object):
     def loss_op(self):
         if self.CRF:
             log_likelihood, self.transition_params = crf_log_likelihood(inputs=self.logits,
-                                                                   tag_indices=self.labels,
-                                                                   sequence_lengths=self.sequence_lengths)
+                                                                        tag_indices=self.labels,
+                                                                        sequence_lengths=self.sequence_lengths)
             self.loss = -tf.reduce_mean(log_likelihood)
 
         else:
@@ -207,7 +210,7 @@ class BiLSTM_CRF(object):
             feed_dict, _ = self.get_feed_dict(seqs, labels, self.lr, self.dropout_keep_prob)
             _, loss_train, summary, step_num_ = sess.run([self.train_op, self.loss, self.merged, self.global_step],
                                                          feed_dict=feed_dict)
-            if step + 1 == 1 or (step + 1) % 300 == 0 or step + 1 == num_batches:
+            if step + 1 == 1 or (step + 1) % 20 == 0 or step + 1 == num_batches:
                 print('logger info')
                 self.logger.info(
                     '{} epoch {}, step {}, loss: {:.4}, global_step: {}'.format(start_time, epoch + 1, step + 1,
@@ -299,16 +302,15 @@ class BiLSTM_CRF(object):
         for label_, (sent, tag) in zip(label_list, data):
             tag_ = [label2tag[label__] for label__ in label_]
             sent_res = []
-            if  len(label_) != len(sent):
+            if len(label_) != len(sent):
                 print(sent)
                 print(len(label_))
                 print(tag)
             for i in range(len(sent)):
                 sent_res.append([sent[i], tag[i], tag_[i]])
             model_predict.append(sent_res)
-        epoch_num = str(epoch+1) if epoch != None else 'test'
+        epoch_num = str(epoch + 1) if epoch != None else 'test'
         label_path = os.path.join(self.result_path, 'label_' + epoch_num)
         metric_path = os.path.join(self.result_path, 'result_metric_' + epoch_num)
         for _ in conlleval(model_predict, label_path, metric_path):
             self.logger.info(_)
-

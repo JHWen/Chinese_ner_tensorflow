@@ -23,7 +23,11 @@
 
 语料库选择，修改`--dataset_name`参数（MSRA, ResumeNER, Weibo_NER,人民日报）
 
-备注：训练其他语料库的话，由于不同语料库的**实体类别**可能存在差异，需要修改`data.py`代码中的tag2label，
+使用预训练的字向量，设置参数`--use_pre_emb true`，默认为false
+
+备注：(增加了自动选择对应数据集tag的功能)
+
+~~训练其他语料库的话，由于不同语料库的**实体类别**可能存在差异，需要修改`data.py`代码中的tag2label~~，
 如果需要运行demo，还需要修改`utils.py`里的`get_entity()`系列方法
 
 | MSRA实体类别 | 标签(BIO标记法) |

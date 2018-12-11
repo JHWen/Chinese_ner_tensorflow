@@ -1,22 +1,79 @@
-import sys, pickle, os, random
+import os
+import pickle
+import random
+import codecs
 import numpy as np
 
-# 默认数据集 MSRA tags, BIO
 tag2label = {"O": 0,
              "B-PER": 1, "I-PER": 2,
              "B-LOC": 3, "I-LOC": 4,
              "B-ORG": 5, "I-ORG": 6
              }
 
+# 默认数据集 MSRA tags, BIO
+tag2label_msra = {"O": 0,
+                  "B-PER": 1, "I-PER": 2,
+                  "B-LOC": 3, "I-LOC": 4,
+                  "B-ORG": 5, "I-ORG": 6
+                  }
 
 # 人民日报数据集
-# tag2label = {"O": 0,
-#              "B-PERSON": 1, "I-PERSON": 2,
-#              "B-LOC": 3, "I-LOC": 4,
-#              "B-ORG": 5, "I-ORG": 6,
-#              "B-GPE": 7, "I-GPE": 8,
-#              "B-MISC": 9, "I-MISC": 10
-#              }
+tag2label_chinadaily = {"O": 0,
+                        "B-PERSON": 1, "I-PERSON": 2,
+                        "B-LOC": 3, "I-LOC": 4,
+                        "B-ORG": 5, "I-ORG": 6,
+                        "B-GPE": 7, "I-GPE": 8,
+                        "B-MISC": 9, "I-MISC": 10
+                        }
+# Weibo_NER
+tag2label_weibo_ner = {"O": 0,
+                       "B-PER.NAM": 1, "I-PER.NAM": 2,
+                       "B-LOC.NAM": 3, "I-LOC.NAM": 4,
+                       "B-ORG.NAM": 5, "I-ORG.NAM": 6,
+                       "B-GPE.NAM": 7, "I-GPE.NAM": 8,
+                       "B-PER.NOM": 9, "I-PER.NOM": 10,
+                       "B-LOC.NOM": 11, "I-LOC.NOM": 12,
+                       "B-ORG.NOM": 13, "I-ORG.NOM": 14
+                       }
+
+# Resume_NER
+tag2label_resume_ner = {"O": 0,
+                        "B-NAME": 1, "M-NAME": 2, "E-NAME": 3, "S-NAME": 4,
+                        "B-RACE": 5, "M-RACE": 6, "E-RACE": 7, "S-RACE": 8,
+                        "B-CONT": 9, "M-CONT": 10, "E-CONT": 11, "S-CONT": 12,
+                        "B-LOC": 13, "M-LOC": 14, "E-LOC": 15, "S-LOC": 16,
+                        "B-PRO": 17, "M-PRO": 18, "E-PRO": 19, "S-PRO": 20,
+                        "B-EDU": 21, "M-EDU": 22, "E-EDU": 23, "S-EDU": 24,
+                        "B-TITLE": 25, "M-TITLE": 26, "E-TITLE": 27, "S-TITLE": 28,
+                        "B-ORG": 29, "M-ORG": 30, "E-ORG": 32, "S-ORG": 33,
+                        }
+
+tag2label_mapping = {
+    'MSRA': tag2label_msra,
+    '人民日报': tag2label_chinadaily,
+    'Weibo_NER': tag2label_weibo_ner,
+    'ResumeNER': tag2label_resume_ner
+
+}
+
+
+def build_character_embeddings(pretrained_emb_path, embeddings_path, word2id, embedding_dim):
+    print('loading pretrained embeddings from {}'.format(pretrained_emb_path))
+    pre_emb = {}
+    for line in codecs.open(pretrained_emb_path, 'r', 'utf-8'):
+        line = line.strip().split()
+        if len(line) == embedding_dim + 1:
+            pre_emb[line[0]] = [float(x) for x in line[1:]]
+    word_ids = sorted(word2id.items(), key=lambda x: x[1])
+    characters = [c[0] for c in word_ids]
+    embeddings = list()
+    for i, ch in enumerate(characters):
+        if ch in pre_emb:
+            embeddings.append(pre_emb[ch])
+        else:
+            embeddings.append(np.random.uniform(-0.25, 0.25, embedding_dim).tolist())
+    embeddings = np.asarray(embeddings, dtype=np.float32)
+    np.save(embeddings_path, embeddings)
 
 
 def read_corpus(corpus_path):
@@ -168,3 +225,7 @@ def batch_yield(data, batch_size, vocab, tag2label, shuffle=False):
 
     if len(seqs) != 0:
         yield seqs, labels
+
+# if __name__ == '__main__':
+#     word2id = read_dictionary(os.path.join('data_path', 'MSRA', 'word2id.pkl'))
+#     build_character_embeddings('./sgns.wiki.char', './vectors.npy', word2id, 300)

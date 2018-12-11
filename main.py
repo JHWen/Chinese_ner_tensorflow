@@ -3,14 +3,15 @@ import numpy as np
 import os, argparse, time, random
 from model import BiLSTM_CRF
 from utils import str2bool, get_logger, get_entity
-from data import read_corpus, read_dictionary, tag2label, random_embedding, vocab_build
+from data import read_corpus, read_dictionary, tag2label_mapping, random_embedding, vocab_build, \
+    build_character_embeddings
 
 # Session configuration
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # default: 0
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
-config.gpu_options.per_process_gpu_memory_fraction = 0.2  # need ~700MB GPU memory
+config.gpu_options.per_process_gpu_memory_fraction = 0.3  # need ~700MB GPU memory
 
 # hyper parameters
 parser = argparse.ArgumentParser(description='BiLSTM-CRF for Chinese NER task')
@@ -18,7 +19,7 @@ parser.add_argument('--dataset_name', type=str, default='MSRA',
                     help='choose a dataset(MSRA, ResumeNER, Weibo_NER,人民日报)')
 # parser.add_argument('--train_data', type=str, default='data_path', help='train data source')
 # parser.add_argument('--test_data', type=str, default='data_path', help='test data source')
-parser.add_argument('--batch_size', type=int, default=64, help='#sample of each minibatch')
+parser.add_argument('--batch_size', type=int, default=20, help='#sample of each minibatch')
 parser.add_argument('--epoch', type=int, default=40, help='#epoch of training')
 parser.add_argument('--hidden_dim', type=int, default=300, help='#dim of hidden state')
 parser.add_argument('--optimizer', type=str, default='Adam', help='Adam/Adadelta/Adagrad/RMSProp/Momentum/SGD')
@@ -27,8 +28,9 @@ parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
 parser.add_argument('--clip', type=float, default=5.0, help='gradient clipping')
 parser.add_argument('--dropout', type=float, default=0.5, help='dropout keep_prob')
 parser.add_argument('--update_embedding', type=str2bool, default=True, help='update embedding during training')
-parser.add_argument('--pretrain_embedding', type=str, default='random',
-                    help='use pretrained char embedding or init it randomly')
+parser.add_argument('--use_pre_emb', type=str2bool, default=False,
+                    help='use pre_trained char embedding or init it randomly')
+parser.add_argument('--pretrained_emb_path', type=str, default='sgns.wiki.char', help='pretrained embedding path')
 parser.add_argument('--embedding_dim', type=int, default=300, help='random init char embedding_dim')
 parser.add_argument('--shuffle', type=str2bool, default=True, help='shuffle training data before each epoch')
 parser.add_argument('--mode', type=str, default='demo', help='train/test/demo')
@@ -40,13 +42,23 @@ if not os.path.exists(os.path.join('data_path', args.dataset_name, 'word2id.pkl'
     vocab_build(os.path.join('data_path', args.dataset_name, 'word2id.pkl'),
                 os.path.join('data_path', args.dataset_name, 'train_data.txt'))
 
-# get char embeddings
+# get word dictionary
 word2id = read_dictionary(os.path.join('data_path', args.dataset_name, 'word2id.pkl'))
-if args.pretrain_embedding == 'random':
+
+# build char embeddings
+if not args.use_pre_emb:
     embeddings = random_embedding(word2id, args.embedding_dim)
+    log_pre = '_use_pre_emb'
 else:
-    embedding_path = 'pretrain_embedding.npy'
-    embeddings = np.array(np.load(embedding_path), dtype='float32')
+    pre_emb_path = os.path.join('.', args.pretrained_emb_path)
+    embeddings_path = os.path.join('data_path', args.dataset_name, 'pretrain_embedding.npy')
+    if not os.path.exists(embeddings_path):
+        build_character_embeddings(pre_emb_path, embeddings_path, word2id, args.embedding_dim)
+    embeddings = np.array(np.load(embeddings_path), dtype='float32')
+    log_pre = '_not_use_pre_emb'
+
+# choose tag2label
+tag2label = tag2label_mapping[args.dataset_name]
 
 # read corpus and get training data
 if args.mode != 'demo':
@@ -71,7 +83,7 @@ paths['model_path'] = ckpt_prefix
 result_path = os.path.join(output_path, "results")
 paths['result_path'] = result_path
 if not os.path.exists(result_path): os.makedirs(result_path)
-log_path = os.path.join(result_path, "log.txt")
+log_path = os.path.join(result_path, args.dataset_name + log_pre +"_log.txt")
 paths['log_path'] = log_path
 get_logger(log_path).info(str(args))
 
@@ -88,6 +100,7 @@ if args.mode == 'train':
 
     # train model on the whole training data
     print("train data: {}".format(len(train_data)))
+    print("test data: {}".format(test_size))
     model.train(train=train_data, dev=test_data)  # use test_data.txt as the dev_data to see overfitting phenomena
 
 # testing model
