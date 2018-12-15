@@ -21,7 +21,7 @@
 
 `python main.py --mode train --dataset_name MSRA`
 
-语料库选择，修改`--dataset_name`参数（MSRA, ResumeNER, Weibo_NER,人民日报）
+语料库选择，修改`--dataset_name`参数（MSRA, ResumeNER, WeiboNER,人民日报）
 
 使用预训练的字向量，设置参数`--use_pre_emb true`，默认为false
 
@@ -44,7 +44,7 @@
 | 机构名 | B-ORG I-ORG|
 | 其他   | B-MISC I-MISC|
 
-| Weibo_NER实体类别 | 标签(BIO标记法) |
+| WeiboNER实体类别 | 标签(BIO标记法) |
 | ------ | ------ |
 | 人名  | B-PER.NAM I-PER.NAM |
 | 地名  | B-LOC.NAM I-LOC.NAM |

@@ -25,7 +25,7 @@ tag2label_chinadaily = {"O": 0,
                         "B-GPE": 7, "I-GPE": 8,
                         "B-MISC": 9, "I-MISC": 10
                         }
-# Weibo_NER
+# WeiboNER
 tag2label_weibo_ner = {"O": 0,
                        "B-PER.NAM": 1, "I-PER.NAM": 2,
                        "B-LOC.NAM": 3, "I-LOC.NAM": 4,
@@ -51,7 +51,7 @@ tag2label_resume_ner = {"O": 0,
 tag2label_mapping = {
     'MSRA': tag2label_msra,
     '人民日报': tag2label_chinadaily,
-    'Weibo_NER': tag2label_weibo_ner,
+    'WeiboNER': tag2label_weibo_ner,
     'ResumeNER': tag2label_resume_ner
 
 }
