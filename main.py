@@ -48,14 +48,14 @@ word2id = read_dictionary(os.path.join('data_path', args.dataset_name, 'word2id.
 # build char embeddings
 if not args.use_pre_emb:
     embeddings = random_embedding(word2id, args.embedding_dim)
-    log_pre = '_use_pre_emb'
+    log_pre = 'not_use_pretrained_embeddings'
 else:
     pre_emb_path = os.path.join('.', args.pretrained_emb_path)
     embeddings_path = os.path.join('data_path', args.dataset_name, 'pretrain_embedding.npy')
     if not os.path.exists(embeddings_path):
         build_character_embeddings(pre_emb_path, embeddings_path, word2id, args.embedding_dim)
     embeddings = np.array(np.load(embeddings_path), dtype='float32')
-    log_pre = '_not_use_pre_emb'
+    log_pre = 'use_pretrained_embeddings'
 
 # choose tag2label
 tag2label = tag2label_mapping[args.dataset_name]
@@ -83,7 +83,7 @@ paths['model_path'] = ckpt_prefix
 result_path = os.path.join(output_path, "results")
 paths['result_path'] = result_path
 if not os.path.exists(result_path): os.makedirs(result_path)
-log_path = os.path.join(result_path, args.dataset_name + log_pre +"_log.txt")
+log_path = os.path.join(result_path, args.dataset_name + log_pre + "_log.txt")
 paths['log_path'] = log_path
 get_logger(log_path).info(str(args))
 
